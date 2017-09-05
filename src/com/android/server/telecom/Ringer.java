@@ -29,7 +29,9 @@ import android.media.Ringtone;
 import android.media.VolumeShaper;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.os.Vibrator;
+import android.provider.Settings;
 
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -99,6 +101,12 @@ public class Ringer {
             0, // No delay before starting
             255, // Vibrate full amplitude
             0, // No amplitude while waiting
+    };
+
+    private static final long[] CALL_WAITING_VIBRATION_PATTERN = {
+            200,
+            300,
+            500,
     };
 
     /**
@@ -418,6 +426,13 @@ public class Ringer {
         Log.v(this, "Playing call-waiting tone.");
 
         stopRinging();
+
+        if (Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.VIBRATE_ON_CALLWAITING, 0, UserHandle.USER_CURRENT) == 1) {
+            if (mVibrator.hasVibrator()) {
+                mVibrator.vibrate(CALL_WAITING_VIBRATION_PATTERN, -1);
+            }
+        }
 
         if (mCallWaitingPlayer == null) {
             Log.addEvent(call, LogUtils.Events.START_CALL_WAITING_TONE, reason);
